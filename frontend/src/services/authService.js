@@ -10,8 +10,9 @@ export const register = async (userData) => {
     const res = await api.post('/auth/register', userData);
     return res.data; // Returns the { msg, user } object
   } catch (err) {
-    console.error(err.response.data);
-    throw err.response.data; // Throw the error to be caught by the component
+    const errorMsg = err.response && err.response.data ? err.response.data : { msg: 'Network Error or CORS failure' };
+    console.error(errorMsg);
+    throw errorMsg;
   }
 };
 
@@ -29,8 +30,9 @@ export const login = async (credentials) => {
     }
     return res.data;
   } catch (err) {
-    console.error(err.response.data);
-    throw err.response.data;
+    const errorMsg = err.response && err.response.data ? err.response.data : { msg: 'Invalid credentials or Network Error' };
+    console.error(errorMsg);
+    throw errorMsg;
   }
 };
 

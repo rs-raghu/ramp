@@ -10,9 +10,9 @@ const models = initModels(sequelize);
 
 // --- Import Routes (We will create these next) ---
 const authRoutes = require('./routes/auth');
-// const workoutRoutes = require('./routes/workouts');
-// const mealRoutes = require('./routes/meals');
-// const goalRoutes = require('./routes/goals');
+const workoutRoutes = require('./routes/workouts');
+const mealRoutes = require('./routes/meals');
+const goalRoutes = require('./routes/goals');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -27,9 +27,9 @@ app.get('/', (req, res) => {
 
 // --- Use Routes (Uncomment these later) ---
 app.use('/api/auth', authRoutes);
-// app.use('/api/workouts', workoutRoutes);
-// app.use('/api/meals', mealRoutes);
-// app.use('/api/goals', goalRoutes);
+app.use('/api/workouts', workoutRoutes);
+app.use('/api/meals', mealRoutes);
+app.use('/api/goals', goalRoutes);
 
 
 // --- Start Server & Connect to DB ---

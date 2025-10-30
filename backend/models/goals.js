@@ -49,6 +49,9 @@ module.exports = function(sequelize, DataTypes) {
     tableName: 'goals',
     schema: 'public',
     timestamps: true,
+    createdAt: 'created_at',
+    updatedAt: 'updated_at',
+    freezeTableName: true,
     indexes: [
       {
         name: "goals_pkey",

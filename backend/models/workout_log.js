@@ -64,7 +64,10 @@ module.exports = function(sequelize, DataTypes) {
     sequelize,
     tableName: 'workout_log',
     schema: 'public',
-    timestamps: false,
+    timestamps: true,
+  createdAt: 'logged_at',
+  updatedAt: false,
+  freezeTableName: true,
     indexes: [
       {
         name: "idx_workout_log_user_date",

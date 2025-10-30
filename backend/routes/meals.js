@@ -74,4 +74,61 @@ router.post('/', async (req, res) => {
   }
 });
 
+// --- PUT /api/meals/:id ---
+// @desc    Update a specific meal log
+// @access  Public (for now)
+router.put('/:id', async (req, res) => {
+  const logId = req.params.id;
+
+  try {
+    // Find the log by its ID (and check that it belongs to our user)
+    const log = await MealLog.findOne({
+      where: {
+        meal_log_id: logId,
+        user_id: TEMP_USER_ID
+      }
+    });
+
+    if (!log) {
+      return res.status(404).json({ msg: 'Meal log not found' });
+    }
+
+    // Update the log with any new data from req.body
+    await log.update(req.body);
+
+    res.json(log); // Send back the updated log
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// --- DELETE /api/meals/:id ---
+// @desc    Delete a specific meal log
+// @access  Public (for now)
+router.delete('/:id', async (req, res) => {
+  const logId = req.params.id;
+
+  try {
+    const log = await MealLog.findOne({
+      where: {
+        meal_log_id: logId,
+        user_id: TEMP_USER_ID
+      }
+    });
+
+    if (!log) {
+      return res.status(404).json({ msg: 'Meal log not found' });
+    }
+
+    // Delete the log
+    await log.destroy();
+
+    res.json({ msg: 'Meal log removed successfully' });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
 module.exports = router;

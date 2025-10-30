@@ -1,6 +1,7 @@
 // in: backend/server.js
 
 const express = require('express');
+const { Op } = require('sequelize');
 const sequelize = require('./config/db'); // Your database connection
 
 // Import your models. This function will attach them to the 'sequelize' object.

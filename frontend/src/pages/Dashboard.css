@@ -217,3 +217,73 @@
   background: #333;
   color: #fff;
 }
+
+/* in: frontend/src/pages/Dashboard.css */
+
+/* --- Add this at the end --- */
+
+.workout-search-container {
+  /* This is the left-side (col 1) of the workout tab */
+  background: rgba(10, 10, 10, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  height: 100%; /* Make it fill the grid cell */
+}
+
+.workout-search-container h3 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding-bottom: 0.5rem;
+  color: #fff;
+  font-weight: 400;
+}
+
+/* Search box style */
+.search-box {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  box-sizing: border-box;
+  margin-bottom: 1rem;
+  color: #ffffff;
+  font-size: 1rem;
+}
+
+.search-box::placeholder { color: #999; }
+.search-box:focus { outline: none; border-color: #ffffff; }
+
+/* Scrollable list for exercises */
+.exercise-list-scroll {
+  max-height: 300px; /* Or whatever height you like */
+  overflow-y: auto;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+}
+
+/* Individual exercise item */
+.exercise-item {
+  padding: 0.75rem 1rem;
+  color: #eee;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.exercise-item:last-child {
+  border-bottom: none;
+}
+.exercise-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.exercise-item.selected {
+  background: #3498db;
+  color: #fff;
+  font-weight: 600;
+}

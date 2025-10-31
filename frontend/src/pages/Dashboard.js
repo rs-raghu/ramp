@@ -5,9 +5,9 @@ import React, { useState, useEffect } from 'react';
 import { getGoals, createGoal, updateGoal } from '../services/goalService';
 import { getWorkouts, createWorkout, deleteWorkout } from '../services/workoutService';
 import { getMeals, createMeal, deleteMeal } from '../services/mealService';
+import { getExercises } from '../services/exerciseService';
 import './Dashboard.css';
 
-// --- NEW: Define your uniform goal types ---
 const GOAL_TYPES = [
   'Weight Loss',
   'Gain Muscle',
@@ -15,6 +15,7 @@ const GOAL_TYPES = [
   'Improve Strength',
   'Eat Healthier'
 ];
+const MEAL_TYPES = ['Breakfast', 'Lunch', 'Dinner', 'Snack', 'Brunch'];
 
 const Dashboard = () => {
   // --- NEW: Re-structured Goals State ---
@@ -33,31 +34,45 @@ const Dashboard = () => {
   });
   const [meals, setMeals] = useState([]);
   const [newMealData, setNewMealData] = useState({
-    food_id: '', meal_date: '', meal_type: '', quantity: '', total_calories: '', notes: ''
-  });
+  food_id: '', 
+  meal_date: '', 
+  meal_type: MEAL_TYPES[0], // <-- Use the first type by default
+  quantity: '', 
+  total_calories: '', 
+  notes: ''
+});
   const [activeTab, setActiveTab] = useState('goals');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [exercisePool, setExercisePool] = useState([]); // Holds all exercises
+const [exerciseSearch, setExerciseSearch] = useState(''); // Holds the search text
+const [selectedExercise, setSelectedExercise] = useState(null); // Holds the clicked exercise
 
   // Fetch all data
+ // in: frontend/src/pages/Dashboard.js
+
   useEffect(() => {
     const loadDashboard = async () => {
       try {
         setLoading(true);
-        const [goalsData, workoutsData, mealsData] = await Promise.all([
+        const [goalsData, workoutsData, mealsData, exercisesData] = await Promise.all([
           getGoals(),
           getWorkouts(),
-          getMeals()
+          getMeals(),
+          getExercises()
         ]);
         
-        // --- NEW: Sort goals on load ---
+        // --- THIS IS THE FIX ---
+        // Sort goals into active and finished
         const active = goalsData.find(g => g.status === 'In Progress');
         const finished = goalsData.filter(g => g.status !== 'In Progress');
         setActiveGoal(active || null);
         setFinishedGoals(finished);
-
+        // --- END FIX ---
+        
         setWorkouts(workoutsData);
         setMeals(mealsData);
+        setExercisePool(exercisesData);
         setError('');
       } catch (err) {
         setError(err.msg || 'Could not load dashboard data');
@@ -65,8 +80,9 @@ const Dashboard = () => {
         setLoading(false);
       }
     };
+    
     loadDashboard();
-  }, []);
+  }, []); // The empty array [] means this runs only once
 
   // --- GOAL HANDLERS (UPDATED) ---
 const onGoalFormChange = (e) => {
@@ -112,14 +128,27 @@ const onGoalFormChange = (e) => {
   // --- (Workout and Meal handlers are unchanged) ---
   const onWorkoutFormChange = (e) => setNewWorkoutData({ ...newWorkoutData, [e.target.name]: e.target.value });
   const onWorkoutFormSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const dataToSubmit = { ...newWorkoutData, exercise_id: newWorkoutData.exercise_id || 1 };
-      const newWorkout = await createWorkout(dataToSubmit);
-      setWorkouts([...workouts, newWorkout]);
-      setNewWorkoutData({ exercise_id: '', workout_date: '', sets_completed: '', reps_completed: '', duration_minutes: '', notes: '' });
-    } catch (err) { setError(err.msg || 'Could not log workout'); }
-  };
+  e.preventDefault();
+  if (!selectedExercise) {
+    alert('Please select an exercise from the list first.');
+    return;
+  }
+
+  try {
+    const dataToSubmit = { 
+      ...newWorkoutData, 
+      exercise_id: selectedExercise.exercise_id // <-- THIS IS THE CHANGE
+    };
+
+    const newWorkout = await createWorkout(dataToSubmit);
+    setWorkouts([...workouts, newWorkout]);
+
+    // Reset form and selection
+    setNewWorkoutData({ exercise_id: '', workout_date: '', sets_completed: '', reps_completed: '', duration_minutes: '', notes: '' });
+    setSelectedExercise(null);
+    setExerciseSearch('');
+  } catch (err) { setError(err.msg || 'Could not log workout'); }
+};
   const handleWorkoutDelete = async (logId) => {
     if (window.confirm('Delete this workout log?')) {
       try {
@@ -135,7 +164,14 @@ const onGoalFormChange = (e) => {
       const dataToSubmit = { ...newMealData, food_id: newMealData.food_id || 1 };
       const newMeal = await createMeal(dataToSubmit);
       setMeals([...meals, newMeal]);
-      setNewMealData({ food_id: '', meal_date: '', meal_type: '', quantity: '', total_calories: '', notes: '' });
+      setNewMealData({ 
+    food_id: '', 
+    meal_date: '', 
+    meal_type: MEAL_TYPES[0], // <-- Reset to the default type
+    quantity: '', 
+    total_calories: '', 
+    notes: '' 
+  });
     } catch (err) { setError(err.msg || 'Could not log meal'); }
   };
   const handleMealDelete = async (logId) => {
@@ -228,47 +264,110 @@ const onGoalFormChange = (e) => {
   );
 
   // --- (Workout and Meal renderers are unchanged) ---
-  const renderWorkoutsSection = () => (
+  const renderWorkoutsSection = () => {
+
+  // Filter the exercise pool based on the search text
+  const filteredExercises = exercisePool.filter(exercise =>
+    exercise.exercise_name.toLowerCase().includes(exerciseSearch.toLowerCase())
+  );
+
+  const handleExerciseSelect = (exercise) => {
+    setSelectedExercise(exercise);
+    // Pre-fill the workout date
+    setNewWorkoutData({ ...newWorkoutData, workout_date: new Date().toISOString().split('T')[0] });
+  };
+
+  return (
     <div className="dashboard-content">
-      <form onSubmit={onWorkoutFormSubmit} className="log-form">
-        <h3>Log a Workout</h3>
-        <input name="workout_date" type="date" value={newWorkoutData.workout_date} onChange={onWorkoutFormChange} required />
-        <input name="sets_completed" type="number" placeholder="Sets" value={newWorkoutData.sets_completed} onChange={onWorkoutFormChange} />
-        <input name="reps_completed" type="number" placeholder="Reps" value={newWorkoutData.reps_completed} onChange={onWorkoutFormChange} />
-        <input name="duration_minutes" type="number" placeholder="Duration (mins)" value={newWorkoutData.duration_minutes} onChange={onWorkoutFormChange} />
-        <input name="notes" placeholder="Notes" value={newWorkoutData.notes} onChange={onWorkoutFormChange} />
-        <button type="submit">Log Workout</button>
-        <small style={{display: 'block', marginTop: '1rem', color: '#777'}}>Note: Using default Exercise ID 1.</small>
-      </form>
-      <div className="log-list">
-        <h3>My Workout History</h3>
-        {workouts.length === 0 ? <p style={{padding: '1rem 1.5rem', color: '#999'}}>No workouts logged.</p> : (
-          workouts.map(workout => (
-            <div key={workout.log_id} className="log-item">
-              <div className="log-item-details">
-                <span className="type">Date: {new Date(workout.workout_date).toLocaleDateString()}</span>
-                <span className="info">Sets: {workout.sets_completed} | Reps: {workout.reps_completed} | Duration: {workout.duration_minutes} mins</span>
+      {/* --- COLUMN 1: SEARCH LIST --- */}
+      <div className="workout-search-container">
+        <h3>Search Exercises</h3>
+        <input
+          type="text"
+          className="search-box"
+          placeholder="Search for an exercise..."
+          value={exerciseSearch}
+          onChange={(e) => setExerciseSearch(e.target.value)}
+        />
+        <div className="exercise-list-scroll">
+          {filteredExercises.length > 0 ? (
+            filteredExercises.map(exercise => (
+              <div
+                key={exercise.exercise_id}
+                className={`exercise-item ${selectedExercise?.exercise_id === exercise.exercise_id ? 'selected' : ''}`}
+                onClick={() => handleExerciseSelect(exercise)}
+              >
+                {exercise.exercise_name}
               </div>
-              <div className="log-item-action">
-                <button onClick={() => handleWorkoutDelete(workout.log_id)}>Delete</button>
+            ))
+          ) : (
+            <p style={{ padding: '1rem', color: '#999' }}>No exercises found.</p>
+          )}
+        </div>
+      </div>
+
+      {/* --- COLUMN 2: LOG FORM & LIST --- */}
+      <div>
+        {/* The "Log a Workout" form is now inside the log-list container */}
+        <div className="log-list">
+          {/* Show this form ONLY if an exercise is selected */}
+          {selectedExercise ? (
+            <form onSubmit={onWorkoutFormSubmit} className="log-form" style={{ background: 'none', boxShadow: 'none' }}>
+              <h3>Log: {selectedExercise.exercise_name}</h3>
+              <input name="workout_date" type="date" value={newWorkoutData.workout_date} onChange={onWorkoutFormChange} required />
+              <input name="sets_completed" type="number" placeholder="Sets" value={newWorkoutData.sets_completed} onChange={onWorkoutFormChange} />
+              <input name="reps_completed" type="number" placeholder="Reps" value={newWorkoutData.reps_completed} onChange={onWorkoutFormChange} />
+              <input name="duration_minutes" type="number" placeholder="Duration (mins)" value={newWorkoutData.duration_minutes} onChange={onWorkoutFormChange} />
+              <input name="notes" placeholder="Notes" value={newWorkoutData.notes} onChange={onWorkoutFormChange} />
+              <button typeWhat="submit">Log Workout</button>
+              <button type="button" onClick={() => setSelectedExercise(null)} style={{ background: '#777', marginTop: '0.5rem' }}>Cancel</button>
+            </form>
+          ) : (
+            <h3 style={{ textAlign: 'center' }}>Select an exercise from the left to log it.</h3>
+          )}
+        </div>
+
+        {/* The Workout History List */}
+        <div className="log-list" style={{ marginTop: '2rem' }}>
+          <h3>My Workout History</h3>
+          {workouts.length === 0 ? <p style={{padding: '1rem 1.5rem', color: '#999'}}>No workouts logged.</p> : (
+            workouts.map(workout => (
+              <div key={workout.log_id} className="log-item">
+                <div className="log-item-details">
+                  {/* We'd need to JOIN to get name, so for now we'll just show date and exercise ID */}
+                  <span className="type">Date: {new Date(workout.workout_date).toLocaleDateString()} (Exercise ID: {workout.exercise_id})</span>
+                  <span className="info">Sets: {workout.sets_completed} | Reps: {workout.reps_completed} | Duration: {workout.duration_minutes} mins</span>
+                </div>
+                <div className="log-item-action">
+                  <button onClick={() => handleWorkoutDelete(workout.log_id)}>Delete</button>
+                </div>
               </div>
-            </div>
-          ))
-        )}
+            ))
+          )}
+        </div>
       </div>
     </div>
   );
+};
 
   const renderMealsSection = () => (
     <div className="dashboard-content">
       <form onSubmit={onMealFormSubmit} className="log-form">
         <h3>Log a Meal</h3>
         <input name="meal_date" type="date" value={newMealData.meal_date} onChange={onMealFormChange} required />
-        <input name="meal_type" type="text" placeholder="Meal Type (e.g., Breakfast)" value={newMealData.meal_type} onChange={onMealFormChange} />
+        
+        {/* --- THIS IS THE NEW DROPDOWN --- */}
+        <select name="meal_type" value={newMealData.meal_type} onChange={onMealFormChange}>
+          {MEAL_TYPES.map(type => (
+            <option key={type} value={type}>{type}</option>
+          ))}
+        </select>
+        
         <input name="total_calories" type="number" placeholder="Total Calories" value={newMealData.total_calories} onChange={onMealFormChange} />
+        <input name="quantity" type="number" placeholder="Quantity (e.g., 1)" value={newMealData.quantity} onChange={onMealFormChange} />
         <input name="notes" placeholder="Notes" value={newMealData.notes} onChange={onMealFormChange} />
         <button type="submit">Log Meal</button>
-        <small style={{display: 'block', marginTop: '1rem', color: '#777'}}>Note: Using default Food ID 1.</small>
+        {/* <small style={{display: 'block', marginTop: '1rem', color: '#777'}}>Note: Using default Food ID 1.</small> */}
       </form>
       <div className="log-list">
         <h3>My Food Log</h3>

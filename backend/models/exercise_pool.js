@@ -43,7 +43,9 @@ module.exports = function(sequelize, DataTypes) {
     sequelize,
     tableName: 'exercise_pool',
     schema: 'public',
-    timestamps: true,
+    createdAt: 'created_at', // Map createdAt to your 'created_at' column
+    updatedAt: false,     // Tell Sequelize there is NO updatedAt column
+    freezeTableName: true,
     indexes: [
       {
         name: "exercise_pool_pkey",

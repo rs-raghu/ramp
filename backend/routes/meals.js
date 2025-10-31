@@ -58,14 +58,13 @@ router.post('/', async (req, res) => {
       custom_food_id: custom_food_id,
       meal_date: meal_date,
       meal_type: meal_type,
-      quantity: quantity,
-      total_calories: total_calories,
-      total_protein: total_protein,
-      total_carbs: total_carbs,
-      total_fats: total_fats,
+      quantity: quantity || null,
+      total_calories: total_calories || null,
+      total_protein: total_protein || null,
+      total_carbs: total_carbs || null,
+      total_fats: total_fats || null,
       notes: notes
-      // 'logged_at' will be set by default
-    });
+    })
 
     res.status(201).json(newLog);
   } catch (err) {

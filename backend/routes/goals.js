@@ -32,30 +32,49 @@ router.get('/', async (req, res) => {
 });
 
 // --- POST /api/goals/ ---
-// @desc    Create a new goal for the hardcoded user
+// @desc    Create a new goal (NOW WITH CONDITIONAL VALIDATION)
 // @access  Public (for now)
 router.post('/', async (req, res) => {
-  // Get goal data from the request body
   const { goal_type, target_value, start_date, target_date, notes } = req.body;
 
-  // Basic validation
-  if (!goal_type || !target_value || !start_date) {
-    return res.status(400).json({ msg: 'Please provide goal_type, target_value, and start_date' });
+  // --- NEW VALIDATION LOGIC ---
+  // 1. Base validation
+  if (!goal_type || !start_date) {
+    return res.status(400).json({ msg: 'Please provide a goal type and a start date' });
+  }
+
+  // 2. Conditional validation for target_value
+  if ((goal_type === 'Weight Loss' || goal_type === 'Gain Muscle') && !target_value) {
+    return res.status(400).json({ msg: 'Target Weight is required for this goal type.' });
   }
 
   try {
+    // 3. Check if an active goal already exists
+    const existingActiveGoal = await Goal.findOne({
+      where: {
+        user_id: TEMP_USER_ID,
+        status: 'In Progress'
+      }
+    });
+
+    if (existingActiveGoal) {
+      return res.status(400).json({ msg: 'You already have an active goal. Please complete it before starting a new one.' });
+    }
+    
+    // 4. Create the new goal
     const newGoal = await Goal.create({
-      user_id: TEMP_USER_ID, // Using hardcoded user
+      user_id: TEMP_USER_ID,
       goal_type: goal_type,
-      target_value: target_value,
-      current_value: 0, // Default current value
+      // This will save null if target_value is ""
+      target_value: target_value || null, 
+      current_value: 0,
       start_date: start_date,
       target_date: target_date,
       status: 'In Progress',
       notes: notes
     });
 
-    res.status(201).json(newGoal); // Send the newly created goal back
+    res.status(201).json(newGoal);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');

@@ -1,95 +1,98 @@
 // in: frontend/src/pages/Register.js
 
 import React, { useState } from 'react';
-import { register } from '../services/authService'; // Import our function
+import { register } from '../services/authService';
+import { Link, useNavigate } from 'react-router-dom'; // Import Link and useNavigate
+import './AuthForm.css'; // Import the new CSS
 
 const Register = () => {
-  // State to hold the form data
   const [formData, setFormData] = useState({
-    username: '',
-    email: '',
-    password: '',
-    full_name: ''
+    username: '', email: '', password: '', full_name: ''
   });
-
-  // A state for loading or error messages
   const [message, setMessage] = useState('');
+  const [isError, setIsError] = useState(false);
+  const navigate = useNavigate(); // Hook for redirecting
 
   const { username, email, password, full_name } = formData;
 
-  // This function updates the state when you type in the form
   const onChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // This function runs when you submit the form
   const onSubmit = async (e) => {
-    e.preventDefault(); // Stop the form from refreshing the page
+    e.preventDefault();
     setMessage('Registering...');
-
+    setIsError(false);
     try {
-      // Call the register function from our authService
       const data = await register({ username, email, password, full_name });
+      setMessage(data.msg + ' Redirecting to login...');
       
-      console.log(data); // Log the success message
-      setMessage(data.msg); // Show "User registered successfully"
-      
-      // You could automatically log them in or redirect them here
-      // For now, we'll just show the message.
+      // Redirect to the login page after a short delay
+      setTimeout(() => navigate('/login'), 1500); 
 
     } catch (err) {
       console.error(err);
-      setMessage(err.msg || 'An error occurred. Please try again.'); // Show the error from the backend
+      setMessage(err.msg || 'An error occurred. Please try again.');
+      setIsError(true);
     }
   };
 
   return (
-    <div>
-      <h2>Register</h2>
-      <form onSubmit={onSubmit}>
-        <div>
-          <input
-            type="text"
-            placeholder="Username"
-            name="username"
-            value={username}
-            onChange={onChange}
-            required
-          />
-        </div>
-        <div>
-          <input
-            type="email"
-            placeholder="Email"
-            name="email"
-            value={email}
-            onChange={onChange}
-            required
-          />
-        </div>
-        <div>
-          <input
-            type="password"
-            placeholder="Password"
-            name="password"
-            value={password}
-            onChange={onChange}
-            minLength="6"
-            required
-          />
-        </div>
-        <div>
-          <input
-            type="text"
-            placeholder="Full Name"
-            name="full_name"
-            value={full_name}
-            onChange={onChange}
-          />
-        </div>
-        <button type="submit">Register</button>
-      </form>
-      {message && <p>{message}</p>}
+    <div className="auth-container">
+      <div className="auth-form">
+        <h2>Register</h2>
+        <form onSubmit={onSubmit}>
+          <div>
+            <input
+              type="text"
+              placeholder="Username"
+              name="username"
+              value={username}
+              onChange={onChange}
+              required
+            />
+          </div>
+          <div>
+            <input
+              type="email"
+              placeholder="Email"
+              name="email"
+              value={email}
+              onChange={onChange}
+              required
+            />
+          </div>
+          <div>
+            <input
+              type="password"
+              placeholder="Password"
+              name="password"
+              value={password}
+              onChange={onChange}
+              minLength="6"
+              required
+            />
+          </div>
+          <div>
+            <input
+              type="text"
+              placeholder="Full Name (Optional)"
+              name="full_name"
+              value={full_name}
+              onChange={onChange}
+            />
+          </div>
+          <button type="submit">Register</button>
+        </form>
+        {message && (
+          <p className={`message ${isError ? 'error' : 'success'}`}>
+            {message}
+          </p>
+        )}
+        <p>
+          Already have an account? <Link to="/login">Login Here</Link>
+        </p>
+      </div>
     </div>
   );
 };

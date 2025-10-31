@@ -1,0 +1,219 @@
+/* in: frontend/src/pages/Dashboard.css */
+
+/* --- Grunge/Gradient Background --- */
+/* This will cover the entire dashboard page */
+.dashboard-container::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  
+  /* The "Grunge" Texture */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23n)' opacity='0.15'/%3E%3C/svg%3E");
+  
+  /* The Black & White Gradient */
+  background-color: #111;
+  background-image: linear-gradient(135deg, #0a0a0a 25%, #222 75%);
+}
+
+.dashboard-container {
+  width: 100%;
+  max-width: 1300px; /* Make it a bit wider */
+  margin: 2rem auto; 
+  padding: 0 1rem;
+  box-sizing: border-box;
+}
+
+/* --- Dark Theme Tab Navigation --- */
+.tab-nav {
+  display: flex;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  margin-bottom: 2rem;
+}
+
+.tab-button {
+  padding: 1rem 1.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+  color: #888;
+  font-weight: 500;
+  position: relative;
+  bottom: -1px; /* Sits on top of the border */
+  transition: color 0.2s ease;
+}
+
+.tab-button:hover {
+  color: #ccc;
+}
+
+.tab-button.active {
+  color: #fff;
+  font-weight: 700;
+  border-bottom: 2px solid #fff;
+}
+
+/* --- Content Area --- */
+.dashboard-content {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 2rem;
+}
+
+/* --- Frosted Glass Form --- */
+.log-form {
+  background: rgba(10, 10, 10, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.log-form h3 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding-bottom: 0.5rem;
+  color: #fff;
+  font-weight: 400;
+}
+
+.log-form input {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  box-sizing: border-box;
+  margin-bottom: 1rem;
+  color: #ffffff;
+  font-size: 1rem;
+}
+
+.log-form input::placeholder {
+  color: #999;
+}
+
+.log-form input:focus {
+  outline: none;
+  border-color: #ffffff;
+}
+
+.log-form button {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  background: #ffffff;
+  color: #111111;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: 600;
+  transition: all 0.2s ease-in-out;
+}
+
+.log-form button:hover {
+  background: #cccccc;
+}
+
+/* --- Frosted Glass List --- */
+.log-list {
+  background: rgba(10, 10, 10, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  overflow: hidden;
+}
+
+.log-list h3 {
+  margin: 0;
+  padding: 1rem 1.5rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-weight: 400;
+}
+
+.log-list .log-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.log-list .log-item:last-child {
+  border-bottom: none;
+}
+
+.log-item-details {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.log-item-details .type {
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 0.25rem;
+}
+
+.log-item-details .info {
+  font-size: 0.9rem;
+  color: #bbbbbb;
+}
+
+.log-item-action button {
+  background: none;
+  border: 1px solid #ff8a8a;
+  color: #ff8a8a;
+  border-radius: 4px;
+  padding: 0.3rem 0.6rem;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+}
+
+.log-item-action button:hover {
+  background: #ff8a8a;
+  color: #111;
+}
+
+.log-form select {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  box-sizing: border-box;
+  margin-bottom: 1rem;
+  color: #ffffff;
+  font-size: 1rem;
+  
+  /* Removes default OS styling */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  
+  /* Adds a custom arrow */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='white' viewBox='0 0 16 16'%3E%3Cpath d='M8 11.5a.5.5 0 0 1-.354-.146l-4-4a.5.5 0 0 1 .708-.708L8 10.293l3.646-3.647a.5.5 0 0 1 .708.708l-4 4A.5.5 0 0 1 8 11.5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1em 1em;
+}
+
+/* Styles the dropdown options */
+.log-form select option {
+  background: #333;
+  color: #fff;
+}

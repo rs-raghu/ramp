@@ -40,3 +40,12 @@ export const login = async (credentials) => {
 export const logout = () => {
   localStorage.removeItem('token');
 };
+
+export const getCurrentUser = () => {
+  const token = localStorage.getItem('token');
+  if (!token) return null;
+  
+  // In a real app, you'd decode the token to get user info.
+  // For now, just knowing the token exists is enough.
+  return { token: token }; 
+};

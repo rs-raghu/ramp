@@ -3,7 +3,8 @@
 const express = require('express');
 const { Op } = require('sequelize');
 const cors = require('cors');
-const sequelize = require('./config/db'); // Your database connection
+const sequelize = require('./config/db');
+const exerciseRoutes = require('./routes/exercises');
 
 // Import your models. This function will attach them to the 'sequelize' object.
 const initModels = require('./models/init-models');
@@ -32,7 +33,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/workouts', workoutRoutes);
 app.use('/api/meals', mealRoutes);
 app.use('/api/goals', goalRoutes);
-
+app.use('/api/exercises', exerciseRoutes);
 
 // --- Start Server & Connect to DB ---
 app.listen(PORT, async () => {

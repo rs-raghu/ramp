@@ -264,91 +264,100 @@ const onGoalFormChange = (e) => {
   );
 
   // --- (Workout and Meal renderers are unchanged) ---
+ // in: frontend/src/pages/Dashboard.js
+
+  // --- REPLACE this function ---
   const renderWorkoutsSection = () => {
+  
+    const filteredExercises = exercisePool.filter(exercise =>
+      exercise.exercise_name.toLowerCase().includes(exerciseSearch.toLowerCase())
+    );
+  
+    const handleExerciseSelect = (exercise) => {
+      setSelectedExercise(exercise);
+      setNewWorkoutData({ ...newWorkoutData, workout_date: new Date().toISOString().split('T')[0] });
+    };
 
-  // Filter the exercise pool based on the search text
-  const filteredExercises = exercisePool.filter(exercise =>
-    exercise.exercise_name.toLowerCase().includes(exerciseSearch.toLowerCase())
-  );
-
-  const handleExerciseSelect = (exercise) => {
-    setSelectedExercise(exercise);
-    // Pre-fill the workout date
-    setNewWorkoutData({ ...newWorkoutData, workout_date: new Date().toISOString().split('T')[0] });
+    // --- NEW HELPER FUNCTION ---
+    // Finds the exercise name from the ID
+    const getExerciseName = (id) => {
+      const exercise = exercisePool.find(ex => ex.exercise_id === id);
+      return exercise ? exercise.exercise_name : `Exercise ID: ${id}`;
+    };
+  
+    return (
+      <div className="dashboard-content">
+        {/* --- COLUMN 1: SEARCH LIST (Unchanged) --- */}
+        <div className="workout-search-container">
+          <h3>Search Exercises</h3>
+          <input
+            type="text"
+            className="search-box"
+            placeholder="Search for an exercise..."
+            value={exerciseSearch}
+            onChange={(e) => setExerciseSearch(e.target.value)}
+          />
+          <div className="exercise-list-scroll">
+            {filteredExercises.length > 0 ? (
+              filteredExercises.map(exercise => (
+                <div
+                  key={exercise.exercise_id}
+                  className={`exercise-item ${selectedExercise?.exercise_id === exercise.exercise_id ? 'selected' : ''}`}
+                  onClick={() => handleExerciseSelect(exercise)}
+                >
+                  {exercise.exercise_name}
+                </div>
+              ))
+            ) : (
+              <p style={{ padding: '1rem', color: '#999' }}>No exercises found.</p>
+            )}
+          </div>
+        </div>
+  
+        {/* --- COLUMN 2: LOG FORM & LIST (Form is unchanged) --- */}
+        <div>
+          <div className="log-list">
+            {selectedExercise ? (
+              <form onSubmit={onWorkoutFormSubmit} className="log-form" style={{ background: 'none', boxShadow: 'none' }}>
+                <h3>Log: {selectedExercise.exercise_name}</h3>
+                <input name="workout_date" type="date" value={newWorkoutData.workout_date} onChange={onWorkoutFormChange} required />
+                <input name="sets_completed" type="number" placeholder="Sets" value={newWorkoutData.sets_completed} onChange={onWorkoutFormChange} />
+                <input name="reps_completed" type="number" placeholder="Reps" value={newWorkoutData.reps_completed} onChange={onWorkoutFormChange} />
+                <input name="duration_minutes" type="number" placeholder="Duration (mins)" value={newWorkoutData.duration_minutes} onChange={onWorkoutFormChange} />
+                <input name="notes" placeholder="Notes" value={newWorkoutData.notes} onChange={onWorkoutFormChange} />
+                <button type="submit">Log Workout</button>
+                <button type="button" onClick={() => setSelectedExercise(null)} style={{ background: '#777', marginTop: '0.5rem' }}>Cancel</button>
+              </form>
+            ) : (
+              <h3 style={{ textAlign: 'center' }}>Select an exercise from the left to log it.</h3>
+            )}
+          </div>
+  
+          {/* The Workout History List */}
+          <div className="log-list" style={{ marginTop: '2rem' }}>
+            <h3>My Workout History</h3>
+            {workouts.length === 0 ? <p style={{padding: '1rem 1.5rem', color: '#999'}}>No workouts logged.</p> : (
+              workouts.map(workout => (
+                <div key={workout.log_id} className="log-item">
+                  <div className="log-item-details">
+                    
+                    {/* --- THIS IS THE FIX --- */}
+                    <span className="type">{getExerciseName(workout.exercise_id)}</span>
+                    <span className="info">Date: {new Date(workout.workout_date).toLocaleDateString()}</span>
+                    <span className="info">Sets: {workout.sets_completed} | Reps: {workout.reps_completed}</span>
+                  
+                  </div>
+                  <div className="log-item-action">
+                    <button onClick={() => handleWorkoutDelete(workout.log_id)}>Delete</button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+    );
   };
-
-  return (
-    <div className="dashboard-content">
-      {/* --- COLUMN 1: SEARCH LIST --- */}
-      <div className="workout-search-container">
-        <h3>Search Exercises</h3>
-        <input
-          type="text"
-          className="search-box"
-          placeholder="Search for an exercise..."
-          value={exerciseSearch}
-          onChange={(e) => setExerciseSearch(e.target.value)}
-        />
-        <div className="exercise-list-scroll">
-          {filteredExercises.length > 0 ? (
-            filteredExercises.map(exercise => (
-              <div
-                key={exercise.exercise_id}
-                className={`exercise-item ${selectedExercise?.exercise_id === exercise.exercise_id ? 'selected' : ''}`}
-                onClick={() => handleExerciseSelect(exercise)}
-              >
-                {exercise.exercise_name}
-              </div>
-            ))
-          ) : (
-            <p style={{ padding: '1rem', color: '#999' }}>No exercises found.</p>
-          )}
-        </div>
-      </div>
-
-      {/* --- COLUMN 2: LOG FORM & LIST --- */}
-      <div>
-        {/* The "Log a Workout" form is now inside the log-list container */}
-        <div className="log-list">
-          {/* Show this form ONLY if an exercise is selected */}
-          {selectedExercise ? (
-            <form onSubmit={onWorkoutFormSubmit} className="log-form" style={{ background: 'none', boxShadow: 'none' }}>
-              <h3>Log: {selectedExercise.exercise_name}</h3>
-              <input name="workout_date" type="date" value={newWorkoutData.workout_date} onChange={onWorkoutFormChange} required />
-              <input name="sets_completed" type="number" placeholder="Sets" value={newWorkoutData.sets_completed} onChange={onWorkoutFormChange} />
-              <input name="reps_completed" type="number" placeholder="Reps" value={newWorkoutData.reps_completed} onChange={onWorkoutFormChange} />
-              <input name="duration_minutes" type="number" placeholder="Duration (mins)" value={newWorkoutData.duration_minutes} onChange={onWorkoutFormChange} />
-              <input name="notes" placeholder="Notes" value={newWorkoutData.notes} onChange={onWorkoutFormChange} />
-              <button typeWhat="submit">Log Workout</button>
-              <button type="button" onClick={() => setSelectedExercise(null)} style={{ background: '#777', marginTop: '0.5rem' }}>Cancel</button>
-            </form>
-          ) : (
-            <h3 style={{ textAlign: 'center' }}>Select an exercise from the left to log it.</h3>
-          )}
-        </div>
-
-        {/* The Workout History List */}
-        <div className="log-list" style={{ marginTop: '2rem' }}>
-          <h3>My Workout History</h3>
-          {workouts.length === 0 ? <p style={{padding: '1rem 1.5rem', color: '#999'}}>No workouts logged.</p> : (
-            workouts.map(workout => (
-              <div key={workout.log_id} className="log-item">
-                <div className="log-item-details">
-                  {/* We'd need to JOIN to get name, so for now we'll just show date and exercise ID */}
-                  <span className="type">Date: {new Date(workout.workout_date).toLocaleDateString()} (Exercise ID: {workout.exercise_id})</span>
-                  <span className="info">Sets: {workout.sets_completed} | Reps: {workout.reps_completed} | Duration: {workout.duration_minutes} mins</span>
-                </div>
-                <div className="log-item-action">
-                  <button onClick={() => handleWorkoutDelete(workout.log_id)}>Delete</button>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
 
   const renderMealsSection = () => (
     <div className="dashboard-content">

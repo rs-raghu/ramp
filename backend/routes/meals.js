@@ -6,19 +6,17 @@ const sequelize = require('../config/db');
 const initModels = require('../models/init-models');
 const models = initModels(sequelize);
 const MealLog = models.meal_log;
+const auth = require('../middleware/authMiddleware');
 
-// --- !! TEMPORARY DEV NOTE !! ---
-// All routes are hardcoded to user_id: 1 for testing
-const TEMP_USER_ID = 1;
 
 // --- GET /api/meals/ ---
 // @desc    Get all of the user's meal logs
 // @access  Public (for now)
-router.get('/', async (req, res) => {
+router.get('/', auth, async (req, res) => {
   try {
     const logs = await MealLog.findAll({
       where: {
-        user_id: TEMP_USER_ID
+        user_id: req.user.id
       },
       order: [['meal_date', 'DESC']]
     });
@@ -32,7 +30,7 @@ router.get('/', async (req, res) => {
 // --- POST /api/meals/ ---
 // @desc    Log a new meal
 // @access  Public (for now)
-router.post('/', async (req, res) => {
+router.post('/', auth, async (req, res) => {
   const {
     food_id, // From the global pool
     custom_food_id, // From the user's custom list
@@ -53,7 +51,7 @@ router.post('/', async (req, res) => {
 
   try {
     const newLog = await MealLog.create({
-      user_id: TEMP_USER_ID,
+      user_id: req.user.id,
       food_id: food_id,
       custom_food_id: custom_food_id,
       meal_date: meal_date,
@@ -76,7 +74,7 @@ router.post('/', async (req, res) => {
 // --- PUT /api/meals/:id ---
 // @desc    Update a specific meal log
 // @access  Public (for now)
-router.put('/:id', async (req, res) => {
+router.put('/:id', auth, async (req, res) => {
   const logId = req.params.id;
 
   try {
@@ -84,7 +82,7 @@ router.put('/:id', async (req, res) => {
     const log = await MealLog.findOne({
       where: {
         meal_log_id: logId,
-        user_id: TEMP_USER_ID
+        user_id: req.user.id
       }
     });
 
@@ -105,14 +103,14 @@ router.put('/:id', async (req, res) => {
 // --- DELETE /api/meals/:id ---
 // @desc    Delete a specific meal log
 // @access  Public (for now)
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', auth, async (req, res) => {
   const logId = req.params.id;
 
   try {
     const log = await MealLog.findOne({
       where: {
         meal_log_id: logId,
-        user_id: TEMP_USER_ID
+        user_id: req.user.id
       }
     });
 

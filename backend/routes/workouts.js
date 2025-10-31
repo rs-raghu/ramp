@@ -6,19 +6,16 @@ const sequelize = require('../config/db');
 const initModels = require('../models/init-models');
 const models = initModels(sequelize);
 const WorkoutLog = models.workout_log;
-
-// --- !! TEMPORARY DEV NOTE !! ---
-// All routes are hardcoded to user_id: 1 for testing
-const TEMP_USER_ID = 1;
+const auth = require('../middleware/authMiddleware');
 
 // --- GET /api/workouts/ ---
 // @desc    Get all of the user's workout logs
 // @access  Public (for now)
-router.get('/', async (req, res) => {
+router.get('/', auth, async (req, res) => {
   try {
     const logs = await WorkoutLog.findAll({
       where: {
-        user_id: TEMP_USER_ID
+        user_id: req.user.id
       },
       order: [['workout_date', 'DESC']]
     });
@@ -33,7 +30,7 @@ router.get('/', async (req, res) => {
 // --- POST /api/workouts/ ---
 // @desc    Log a new completed workout
 // @access  Public (for now)
-router.post('/', async (req, res) => {
+router.post('/', auth, async (req, res) => {
   const {
     exercise_id, // From the global pool
     custom_exercise_id, // From the user's custom list
@@ -52,7 +49,7 @@ router.post('/', async (req, res) => {
 
   try {
     const newLog = await WorkoutLog.create({
-      user_id: TEMP_USER_ID,
+      user_id: req.user.id,
       exercise_id: exercise_id,
       custom_exercise_id: custom_exercise_id,
       workout_date: workout_date,
@@ -75,7 +72,7 @@ router.post('/', async (req, res) => {
 // --- PUT /api/workouts/:id ---
 // @desc    Update a specific workout log
 // @access  Public (for now)
-router.put('/:id', async (req, res) => {
+router.put('/:id', auth, async (req, res) => {
   const logId = req.params.id;
 
   try {
@@ -83,7 +80,7 @@ router.put('/:id', async (req, res) => {
     const log = await WorkoutLog.findOne({
       where: {
         log_id: logId,
-        user_id: TEMP_USER_ID
+        user_id: req.user.id
       }
     });
 
@@ -105,14 +102,14 @@ router.put('/:id', async (req, res) => {
 // --- DELETE /api/workouts/:id ---
 // @desc    Delete a specific workout log
 // @access  Public (for now)
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', auth, async (req, res) => {
   const logId = req.params.id;
 
   try {
     const log = await WorkoutLog.findOne({
       where: {
         log_id: logId,
-        user_id: TEMP_USER_ID
+        user_id: req.user.id
       }
     });
 

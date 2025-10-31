@@ -6,20 +6,16 @@ const sequelize = require('../config/db');
 const initModels = require('../models/init-models');
 const models = initModels(sequelize);
 const Goal = models.goals;
-
-// --- !! TEMPORARY DEV NOTE !! ---
-// All routes are hardcoded to user_id: 1 for testing
-// We will add authentication later
-const TEMP_USER_ID = 1; 
+const auth = require('../middleware/authMiddleware');
 
 // --- GET /api/goals/ ---
 // @desc    Get all goals for the hardcoded user
 // @access  Public (for now)
-router.get('/', async (req, res) => {
+router.get('/', auth, async (req, res) => {
   try {
     const userGoals = await Goal.findAll({
       where: {
-        user_id: TEMP_USER_ID // Using hardcoded user
+        user_id: req.user.id // Using hardcoded user
       },
       order: [['target_date', 'ASC']]
     });
@@ -34,7 +30,7 @@ router.get('/', async (req, res) => {
 // --- POST /api/goals/ ---
 // @desc    Create a new goal (NOW WITH CONDITIONAL VALIDATION)
 // @access  Public (for now)
-router.post('/', async (req, res) => {
+router.post('/', auth, async (req, res) => {
   const { goal_type, target_value, start_date, target_date, notes } = req.body;
 
   // --- NEW VALIDATION LOGIC ---
@@ -52,7 +48,7 @@ router.post('/', async (req, res) => {
     // 3. Check if an active goal already exists
     const existingActiveGoal = await Goal.findOne({
       where: {
-        user_id: TEMP_USER_ID,
+        user_id: req.user.id,
         status: 'In Progress'
       }
     });
@@ -63,7 +59,7 @@ router.post('/', async (req, res) => {
     
     // 4. Create the new goal
     const newGoal = await Goal.create({
-      user_id: TEMP_USER_ID,
+      user_id: req.user.id,
       goal_type: goal_type,
       // This will save null if target_value is ""
       target_value: target_value || null, 
@@ -85,7 +81,7 @@ router.post('/', async (req, res) => {
 // --- PUT /api/goals/:id ---
 // @desc    Update a specific goal
 // @access  Public (for now)
-router.put('/:id', async (req, res) => {
+router.put('/:id', auth, async (req, res) => {
   const { goal_type, target_value, current_value, status, notes } = req.body;
   const goalId = req.params.id;
 
@@ -94,7 +90,7 @@ router.put('/:id', async (req, res) => {
     const goal = await Goal.findOne({
       where: {
         goal_id: goalId,
-        user_id: TEMP_USER_ID
+        user_id: req.user.id
       }
     });
 
@@ -129,7 +125,7 @@ router.delete('/:id', async (req, res) => {
     const goal = await Goal.findOne({
       where: {
         goal_id: goalId,
-        user_id: TEMP_USER_ID
+        user_id: req.user.id
       }
     });
 
